@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  selftest:
+    name: selftest (py ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { python-version: '3.7', os: ubuntu-22.04 }
+          - { python-version: '3.8', os: ubuntu-latest }
+          - { python-version: '3.9', os: ubuntu-latest }
+          - { python-version: '3.10', os: ubuntu-latest }
+          - { python-version: '3.11', os: ubuntu-latest }
+          - { python-version: '3.12', os: ubuntu-latest }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile
+        run: python -m py_compile php_guard.py
+      - name: Selftest
+        run: python php_guard.py selftest
+
+  shell:
+    name: shell lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: sh syntax
+        run: sh -n php_guard.sh
+      - name: shellcheck
+        run: shellcheck php_guard.sh
